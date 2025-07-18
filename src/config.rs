@@ -100,7 +100,7 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
-pub const RENDEZVOUS_SERVERS: &[&str] = &["sh.deepli.cn"];
+pub const RENDEZVOUS_SERVERS: &[&str] = &["124.222.110.243"];
 pub const RS_PUB_KEY: &str = "H2jPSf1VA1Gbp1Ath3hclvmb2JmTL3zx9t1+95zHnFU=";
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
