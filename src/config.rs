@@ -56,17 +56,47 @@ lazy_static::lazy_static! {
     static ref STATUS: RwLock<Status> = RwLock::new(Status::load());
     static ref TRUSTED_DEVICES: RwLock<(Vec<TrustedDevice>, bool)> = Default::default();
     static ref ONLINE: Mutex<HashMap<String, i64>> = Default::default();
-    pub static ref PROD_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new("".to_owned());
-    pub static ref EXE_RENDEZVOUS_SERVER: RwLock<String> = Default::default();
+    //ID服务器，读取Repository secrets值
+    pub static ref PROD_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new(
+        option_env!("RENDEZVOUS_SERVER").unwrap_or("rs-ny.rustdesk.com").into()
+    );
+    pub static ref EXE_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new(
+        option_env!("RENDEZVOUS_SERVER").unwrap_or("rs-ny.rustdesk.com").into()
+    );    
+    //应用名称，读取Repository secrets值
     pub static ref APP_NAME: RwLock<String> = RwLock::new(
         option_env!("APP_NAME").unwrap_or("RustDesk").into()
     );
     static ref KEY_PAIR: Mutex<Option<KeyPair>> = Default::default();
     static ref USER_DEFAULT_CONFIG: RwLock<(UserDefaultConfig, Instant)> = RwLock::new((UserDefaultConfig::load(), Instant::now()));
     pub static ref NEW_STORED_PEER_CONFIG: Mutex<HashSet<String>> = Default::default();
-    pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-    pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = {
+    pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = {
         let mut map = HashMap::new();
+        //ID服务器，该配置部分客户端生效，读取Repository secrets值
+        map.insert(
+            "custom-rendezvous-server".to_string(), 
+            option_env!("RENDEZVOUS_SERVER").unwrap_or("rs-ny.rustdesk.com").into()
+        );
+        //中继服务器，读取Repository secrets值
+        map.insert(
+            "relay-server".to_string(), 
+            option_env!("RELAY_SERVER").unwrap_or("rs-ny.rustdesk.com").into()
+        );
+        //API服务器，读取Repository secrets值
+        map.insert(
+            "api-server".to_string(), 
+            option_env!("API_SERVER").unwrap_or("https://admin.rustdesk.com").into()
+        );
+        //KEY，读取Repository secrets值
+        map.insert(
+            "key".to_string(), 
+            option_env!("RS_PUB_KEY").unwrap_or("OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=").into()
+        );
+        //PIN解锁，下方有部分修复改功能代码，读取Repository secrets值
+        map.insert(
+            "unlock_pin".to_string(), 
+            option_env!("DEFAULT_PASSWORD").unwrap_or("").into()
+        );
         //使用DirectX捕获屏幕
         map.insert("enable-directx-capture".to_string(), "Y".to_string());
         //访问模式，custom：自定义，full：完全控制，view：共享屏幕
@@ -85,6 +115,7 @@ lazy_static::lazy_static! {
         map.insert("hide-tray".to_string(), "Y".to_string());
         RwLock::new(map)
     };
+    pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref DEFAULT_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = {
         let mut map = HashMap::new();
         //显示模式，adaptive：适应窗口，original：原始尺寸，
@@ -95,7 +126,7 @@ lazy_static::lazy_static! {
     pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = {
         let mut map = HashMap::new();
         //主题色，dark：深色，light：浅色，system：跟随系统
-        map.insert("theme".to_string(), "system".to_string());
+        map.insert("theme".to_string(), "dark".to_string());
         //使用D3D渲染
         map.insert("allow-d3d-render".to_string(), "Y".to_string());
         //启动时检查软件更新
@@ -113,13 +144,22 @@ lazy_static::lazy_static! {
         RwLock::new(map)
     };
     pub static ref OVERWRITE_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-	pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = {
-		let mut map = HashMap::new();
-		map.insert("password".into(), "Aa123123".into());
-		RwLock::new(map)
-	};
+    pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = {
+        let mut map = HashMap::new();
+        //被控默认密码，固定密码，读取Repository secrets值
+        map.insert(
+            "password".to_string(), 
+            option_env!("DEFAULT_PASSWORD").unwrap_or("").into()
+        );
+        RwLock::new(map)
+    };
     pub static ref BUILTIN_SETTINGS: RwLock<HashMap<String, String>> = {
         let mut map = HashMap::new();
+        //默认连接密码，请求控制的时候要求输入的密码，读取Repository secrets值
+        map.insert(
+            "default-connect-password".to_string(), 
+            option_env!("DEFAULT_PASSWORD").unwrap_or("").into()
+        );
         //隐藏远程打印设置选项
         map.insert("hide-remote-printer-settings".to_string(), "N".to_string());
         //隐藏代理设置选项
